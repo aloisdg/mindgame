@@ -1,0 +1,252 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindgame</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            display: grid;
+            grid-template-rows: auto auto 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        header {
+            grid-row: 1;
+            grid-column-start: 1;
+            grid-column-end: 4;
+            background-color: yellow;
+            font-size: 2rem;
+            padding: 0.5rem;
+            color: white;
+            background: #1a1a1a;
+        }
+
+        .levels {
+            grid-row: span 4;
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: stretch;
+            align-items: stretch;
+        }
+
+        .levels>div>button {
+            width: 100%;
+            height: 100%;
+            font-size: 1rem;
+        }
+
+        .ressources {
+            grid-column: 2 / 4;
+            grid-row: 2 / 5;
+            /* background-color: #2a2a2a; */
+            padding: 1rem;
+            display: grid;
+            grid-template-rows: repeat(1fr, 4);
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .ressources>div {
+            display: grid;
+            place-items: center;
+            font-size: 1.5rem;
+        }
+
+        .ressources>button {
+            font-size: 1.5rem;
+        }
+
+        .next {
+            grid-row: 5;
+            grid-column: 2 / 4;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .next>button {
+            width: 100%;
+            height: 100%;
+            font-size: 2rem;
+        }
+
+        .levels>div {
+            flex: 1;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .levels>.active {
+            background-color: royalblue;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .gold {
+            background-color: gold;
+        }
+
+        .gold.active {
+            background-color: orange;
+        }
+    </style>
+</head>
+
+<body>
+    <header>Mindgame</header>
+    <div class="levels">
+        <div><button type="button" onclick="resetLevel()">reset</button></div>
+        <div class="active">1</div>
+        <div class="gold">2</div>
+        <div class="gold">3</div>
+        <div>4</div>
+        <div class="gold">5</div>
+        <div class="gold">6</div>
+        <div>7</div>
+        <div class="gold">8</div>
+        <div class="gold">9</div>
+        <div>10</div>
+        <div>11</div>
+        <div>12</div>
+    </div>
+    <div class="ressources">
+        <div>Life</div>
+        <div id="life">2</div>
+        <button type="button" class="gainLife" onclick="gainLife(this)">+</button>
+        <button type="button" onclick="looseLife(this)">-</button>
+        <div>Joker</div>
+        <div id="joker">1</div>
+        <button type="button" class="gainJoker" onclick="gainJoker(this)">+</button>
+        <button type="button" onclick="looseJoker(this)">-</button>
+    </div>
+    <div class="next">
+        <button type="button" onclick="nextLevel(this)">next level</button>
+    </div>
+
+    <script>
+        const life = document.querySelector("#life");
+        const joker = document.querySelector("#joker");
+        const maxLife = 5;
+        const maxJoker = 3;
+        const startingLife = 2;
+        const startingJoker = 1;
+
+        function nextLevel(that) {
+            that.disabled = true;
+            const current = document.querySelector(".active");
+            current.classList.remove('active');
+
+            if (current.classList.contains("gold") &&
+                (parseInt(life.textContent) < maxLife ||
+                 parseInt(joker.textContent) < maxJoker)) {
+                if (parseInt(life.textContent) === maxLife) {
+                    gainJoker(document.querySelector('.gainJoker'));
+                }
+                else if (parseInt(joker.textContent) === maxJoker) {
+                    gainLife(document.querySelector('.gainLife'));
+                }
+                else {
+                    const winJoker = confirm("Do you want to win a Joker?");
+                    if (winJoker) {
+                        gainJoker(document.querySelector('.gainJoker'));
+                    }
+                    else {
+                        gainLife(document.querySelector('.gainLife'));
+                    }
+                }
+            }
+
+            const nextElementSibling =
+                current.parentElement.lastElementChild === current
+                    ? current.parentElement.firstElementChild.nextElementSibling
+                    : current.nextElementSibling;
+            nextElementSibling.classList.add('active');
+            setTimeout(() => {
+                that.removeAttribute("disabled");
+            }, 300)
+        }
+
+        function resetLevel() {
+            const current = document.querySelector(".active");
+            current.classList.remove('active');
+            current.parentElement.firstElementChild.nextElementSibling.classList.add('active');
+
+            life.textContent = startingLife;
+            joker.textContent = startingJoker;
+        }
+
+        function gainLife(that) {
+            const value = parseInt(life.textContent) + 1
+
+            if (value === maxLife) {
+                that.disabled = true;
+            }
+
+            // if (that.nextElementSibling.disabled) {
+            //     that.nextElementSibling.removeAttribute('disabled');
+            // }
+
+            life.textContent = value;
+
+        }
+
+        function looseLife(that) {
+            const value = parseInt(life.textContent) - 1
+            if (value === 0) {
+                // that.disabled = true;
+                alert("Game over");
+                resetLevel();
+                return;
+            }
+
+            if (that.previousElementSibling.disabled) {
+                that.previousElementSibling.removeAttribute('disabled');
+            }
+
+            life.textContent = value;
+        }
+
+        function gainJoker(that) {
+            const value = parseInt(joker.textContent) + 1
+
+            if (value === maxJoker) {
+                that.disabled = true;
+            }
+
+            if (that.nextElementSibling.disabled) {
+                that.nextElementSibling.removeAttribute('disabled');
+            }
+
+            joker.textContent = value;
+        }
+
+        function looseJoker(that) {
+            const value = parseInt(joker.textContent) - 1
+            if (value === 0) {
+                that.disabled = true;
+            }
+
+            if (that.previousElementSibling.disabled) {
+                that.previousElementSibling.removeAttribute('disabled');
+            }
+
+            joker.textContent = value;
+        }
+    </script>
+</body>
+
+</html>
